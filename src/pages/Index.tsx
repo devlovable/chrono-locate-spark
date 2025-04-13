@@ -19,10 +19,12 @@ const Index = () => {
   const [date, setDate] = useState<Date>(new Date());
 
   useEffect(() => {
-    // Try to determine user's timezone and location
+    // Initialize time and location
     async function initializeTimeAndLocation() {
       try {
         setIsLoading(true);
+        
+        // Detect user's timezone
         const detectedTimezone = getUserLocalTimezone();
         console.log("Index - Detected timezone:", detectedTimezone);
         setLocalTimezone(detectedTimezone);
@@ -36,6 +38,10 @@ const Index = () => {
           toast.success(`Location detected: ${geoLocation.city || geoLocation.locationName || 'Unknown'}`);
         }
         
+        // Update time immediately
+        const now = getCurrentTimeInTimeZone(detectedTimezone);
+        setCurrentTime(now);
+        
         toast.success(`Time synchronized with ${detectedTimezone.city} timezone`);
         setIsLoading(false);
       } catch (error) {
@@ -46,15 +52,29 @@ const Index = () => {
     }
     
     initializeTimeAndLocation();
+  }, []); // Only run once on component mount
 
-    // Update time every second with the correct timezone
-    const interval = setInterval(() => {
+  // Separate effect for time updates to avoid recreating interval on each render
+  useEffect(() => {
+    if (!localTimezone) return;
+    
+    console.log("Setting up time interval with timezone:", localTimezone);
+    
+    // Update time immediately
+    const updateTime = () => {
       const now = getCurrentTimeInTimeZone(localTimezone);
+      console.log("Updated current time:", now.toISOString());
       setCurrentTime(now);
-    }, 1000);
-
+    };
+    
+    // Call once
+    updateTime();
+    
+    // Then set up interval (update every second)
+    const interval = setInterval(updateTime, 1000);
+    
     return () => clearInterval(interval);
-  }, [localTimezone]); // Re-run if localTimezone changes
+  }, [localTimezone]); // Re-run only if localTimezone changes
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">

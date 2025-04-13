@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Plus, RefreshCw, MapPin, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -25,12 +24,14 @@ const WorldClock: React.FC<WorldClockProps> = ({ userLocation }) => {
   const [showExtendedInfo, setShowExtendedInfo] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
+  // Initialize timezones on component mount
   useEffect(() => {
-    // Initialize with user's detected timezone and some popular ones
     try {
       setIsLoading(true);
+      
+      // Get the user's local timezone
       const detectedTimezone = getUserLocalTimezone();
-      console.log("Detected timezone:", detectedTimezone);
+      console.log("WorldClock - Detected timezone:", detectedTimezone);
       
       // Use the detected timezone as primary and add some popular ones
       const initialTimezones = [
@@ -41,7 +42,10 @@ const WorldClock: React.FC<WorldClockProps> = ({ userLocation }) => {
         ).slice(0, 2)
       ];
       
+      console.log("Initial timezones set:", initialTimezones);
       setSelectedTimezones(initialTimezones);
+      
+      // Show success message
       toast.success(`World clock synchronized with ${detectedTimezone.city} timezone`);
       setIsLoading(false);
     } catch (error) {
@@ -57,22 +61,28 @@ const WorldClock: React.FC<WorldClockProps> = ({ userLocation }) => {
     }
   }, []);
 
+  // Update times when selected timezones change
   useEffect(() => {
+    if (selectedTimezones.length === 0) return;
+    
+    console.log("Setting up time interval for world clock with timezones:", selectedTimezones);
+    
     const updateTimes = () => {
       const newTimes = selectedTimezones.map(tz => {
         const time = getCurrentTimeInTimeZone(tz);
-        console.log(`Time in ${tz.city} (${tz.name}): ${time.toISOString()}`);
         return time;
       });
+      
       setTimes(newTimes);
       setLastSync(new Date());
     };
     
-    if (selectedTimezones.length > 0) {
-      updateTimes();
-      const intervalId = setInterval(updateTimes, 1000);
-      return () => clearInterval(intervalId);
-    }
+    // Call immediately
+    updateTimes();
+    
+    // Then set up interval
+    const intervalId = setInterval(updateTimes, 1000);
+    return () => clearInterval(intervalId);
   }, [selectedTimezones]);
 
   const handleAddTimezone = () => {

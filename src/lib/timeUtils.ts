@@ -37,18 +37,29 @@ export const timeZones: TimeZone[] = [
 ];
 
 export function getCurrentTimeInTimeZone(timezone: TimeZone): Date {
-  // Create a new Date object for the current time
+  // Get the current UTC time
   const now = new Date();
   
-  // Convert to UTC by adding the local timezone offset
-  const utcDate = new Date(now.getTime() + now.getTimezoneOffset() * 60000);
+  // Convert the current datetime to milliseconds since epoch
+  const localTimeMs = now.getTime();
   
-  // Then add the target timezone's offset (in milliseconds)
-  // For timezones with fraction offsets (like India's +5:30), convert to minutes first
-  const offsetInMinutes = timezone.offset * 60;
-  const targetTime = new Date(utcDate.getTime() + offsetInMinutes * 60000);
+  // Get the local timezone offset in minutes
+  const localTimezoneOffsetMinutes = now.getTimezoneOffset();
   
-  return targetTime;
+  // Convert local time to UTC time in milliseconds
+  const utcTimeMs = localTimeMs + (localTimezoneOffsetMinutes * 60 * 1000);
+  
+  // Calculate time in target timezone
+  const targetTimezoneOffsetMs = timezone.offset * 60 * 60 * 1000;
+  const targetTimeMs = utcTimeMs + targetTimezoneOffsetMs;
+  
+  console.log(`Time calculation for ${timezone.name} (${timezone.city}):`);
+  console.log(`- Local time: ${now.toISOString()}`);
+  console.log(`- Local offset: ${localTimezoneOffsetMinutes} minutes`);
+  console.log(`- Target offset: ${timezone.offset} hours`);
+  console.log(`- Result: ${new Date(targetTimeMs).toISOString()}`);
+  
+  return new Date(targetTimeMs);
 }
 
 export function formatTime(date: Date, formatString: string = "h:mm a"): string {
@@ -111,21 +122,27 @@ export function getTimezoneByOffset(offset: number): TimeZone | undefined {
 
 export function getUserLocalTimezone(): TimeZone {
   try {
-    // Get browser's timezone name (e.g., "America/New_York")
+    // Get browser's timezone name
     const browserTz = getBrowserTimezone();
+    console.log("Browser timezone:", browserTz);
     
     // Try to find a direct match in our timeZones array
-    const timezoneByName = timeZones.find(tz => 
+    let timezoneByName = timeZones.find(tz => 
       tz.name === browserTz || 
       browserTz.includes(tz.name)
     );
     
-    if (timezoneByName) return timezoneByName;
+    if (timezoneByName) {
+      console.log("Found timezone by name:", timezoneByName);
+      return timezoneByName;
+    }
     
     // If no direct match, use the browser's offset to find a match
     const now = new Date();
     const offsetInMinutes = -now.getTimezoneOffset();
     const offsetInHours = offsetInMinutes / 60;
+    
+    console.log("Browser timezone offset (hours):", offsetInHours);
     
     // Find timezone with the closest offset
     const timezoneByOffset = timeZones.reduce((closest, current) => {
@@ -134,6 +151,7 @@ export function getUserLocalTimezone(): TimeZone {
       return currentDiff < closestDiff ? current : closest;
     }, timeZones[0]);
     
+    console.log("Found timezone by offset:", timezoneByOffset);
     return timezoneByOffset;
   } catch (error) {
     console.error("Error detecting user timezone:", error);
