@@ -4,7 +4,7 @@ import { Search, MapPin, Globe } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import TimeCard from './TimeCard';
-import { TimeZone, searchTimeZones, getCurrentTimeInTimeZone } from '@/lib/timeUtils';
+import { TimeZone, searchTimeZones, getCurrentTimeInTimeZone, timeZones } from '@/lib/timeUtils';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
