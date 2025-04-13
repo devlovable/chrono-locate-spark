@@ -5,8 +5,8 @@ import Header from '@/components/Header';
 import WorldClock from '@/components/WorldClock';
 import TimeConverter from '@/components/TimeConverter';
 import LocationSearch from '@/components/LocationSearch';
-import { Clock, ArrowLeftRight, Search, Globe, Calendar } from 'lucide-react';
-import { timeZones, getCurrentTimeInTimeZone, TimeZone, getUserLocalTimezone } from '@/lib/timeUtils';
+import { Clock, ArrowLeftRight, Search, Globe, Calendar, MapPin } from 'lucide-react';
+import { timeZones, getCurrentTimeInTimeZone, TimeZone, getUserLocalTimezone, getUserGeolocation, GeoLocation } from '@/lib/timeUtils';
 import { format } from 'date-fns';
 import { toast } from '@/components/ui/sonner';
 
@@ -14,21 +14,35 @@ const Index = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [localTimezone, setLocalTimezone] = useState<TimeZone>(timeZones[0]);
   const [isLoading, setIsLoading] = useState(true);
+  const [userLocation, setUserLocation] = useState<GeoLocation | null>(null);
+  const [gpsEnabled, setGpsEnabled] = useState(false);
 
   useEffect(() => {
-    // Try to determine user's timezone
-    try {
-      setIsLoading(true);
-      const detectedTimezone = getUserLocalTimezone();
-      setLocalTimezone(detectedTimezone);
-      
-      toast.success(`Time synchronized with ${detectedTimezone.city} timezone`);
-      setIsLoading(false);
-    } catch (error) {
-      console.error("Error determining local timezone:", error);
-      toast.error("Could not detect your timezone. Using default.");
-      setIsLoading(false);
+    // Try to determine user's timezone and location
+    async function initializeTimeAndLocation() {
+      try {
+        setIsLoading(true);
+        const detectedTimezone = getUserLocalTimezone();
+        setLocalTimezone(detectedTimezone);
+        
+        // Try to get user's geolocation
+        const geoLocation = await getUserGeolocation();
+        if (geoLocation) {
+          setUserLocation(geoLocation);
+          setGpsEnabled(true);
+          toast.success(`Location detected: ${geoLocation.locationName || 'Unknown'}`);
+        }
+        
+        toast.success(`Time synchronized with ${detectedTimezone.city} timezone`);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error determining local timezone or location:", error);
+        toast.error("Could not detect your timezone. Using default.");
+        setIsLoading(false);
+      }
     }
+    
+    initializeTimeAndLocation();
 
     // Update time every second
     const interval = setInterval(() => {
@@ -49,6 +63,36 @@ const Index = () => {
             <h2 className="text-xl font-medium text-gray-700">
               {isLoading ? "Detecting location..." : `Exact time in ${localTimezone.city}`}
             </h2>
+            
+            {userLocation && (
+              <div className="flex items-center justify-center gap-1 text-sm text-primary">
+                <MapPin className="h-3 w-3" />
+                <span>
+                  {userLocation.locationName || `${userLocation.latitude.toFixed(4)}, ${userLocation.longitude.toFixed(4)}`}
+                  {userLocation.accuracy ? ` (±${Math.round(userLocation.accuracy)}m)` : ''}
+                </span>
+              </div>
+            )}
+            
+            {!userLocation && !isLoading && (
+              <div className="text-xs text-muted-foreground">
+                <button 
+                  onClick={async () => {
+                    const location = await getUserGeolocation();
+                    if (location) {
+                      setUserLocation(location);
+                      setGpsEnabled(true);
+                      toast.success(`Location detected: ${location.locationName || 'Unknown'}`);
+                    } else {
+                      toast.error("Could not detect your location. Please allow location access.");
+                    }
+                  }}
+                  className="text-primary underline hover:text-primary/80"
+                >
+                  Enable location detection
+                </button>
+              </div>
+            )}
           </div>
           
           <div className="bg-white p-6 rounded-md shadow-sm border text-center">
@@ -121,7 +165,7 @@ const Index = () => {
           </TabsList>
           
           <TabsContent value="world-clock" className="space-y-8">
-            <WorldClock />
+            <WorldClock userLocation={userLocation} />
           </TabsContent>
           
           <TabsContent value="converter" className="space-y-8">

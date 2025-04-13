@@ -1,3 +1,4 @@
+
 import { format, addHours, parseISO, addMinutes } from "date-fns";
 
 export type TimeZone = {
@@ -5,6 +6,13 @@ export type TimeZone = {
   label: string;
   offset: number;
   city: string;
+};
+
+export type GeoLocation = {
+  latitude: number;
+  longitude: number;
+  accuracy?: number;
+  locationName?: string;
 };
 
 export const timeZones: TimeZone[] = [
@@ -106,5 +114,53 @@ export function getUserLocalTimezone(): TimeZone {
   } catch (error) {
     console.error("Error detecting user timezone:", error);
     return timeZones[0];
+  }
+}
+
+export async function getUserGeolocation(): Promise<GeoLocation | null> {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) {
+      console.error("Geolocation is not supported by this browser");
+      resolve(null);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const location: GeoLocation = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+        };
+        
+        try {
+          // Try to get a location name using reverse geocoding
+          const locationName = await reverseGeocode(position.coords.latitude, position.coords.longitude);
+          if (locationName) {
+            location.locationName = locationName;
+          }
+        } catch (error) {
+          console.error("Error getting location name:", error);
+        }
+        
+        resolve(location);
+      },
+      (error) => {
+        console.error("Error getting geolocation:", error);
+        resolve(null);
+      },
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+    );
+  });
+}
+
+async function reverseGeocode(latitude: number, longitude: number): Promise<string | null> {
+  try {
+    // Since we can't rely on external APIs in this environment, we'll use a simple approach
+    // In a real app, you would use a geocoding service like Google Maps, Mapbox, etc.
+    return `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+  } catch (error) {
+    console.error("Error reverse geocoding:", error);
+    return null;
   }
 }
