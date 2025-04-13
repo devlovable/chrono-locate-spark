@@ -40,26 +40,29 @@ export function getCurrentTimeInTimeZone(timezone: TimeZone): Date {
   // Get the current UTC time
   const now = new Date();
   
-  // Convert the current datetime to milliseconds since epoch
-  const localTimeMs = now.getTime();
+  // Calculate the time directly using UTC methods
+  const utcHours = now.getUTCHours();
+  const utcMinutes = now.getUTCMinutes();
+  const utcSeconds = now.getUTCSeconds();
+  const utcMilliseconds = now.getUTCMilliseconds();
   
-  // Get the local timezone offset in minutes
-  const localTimezoneOffsetMinutes = now.getTimezoneOffset();
+  // Clone the date to avoid modifying the original
+  const targetDate = new Date(now);
   
-  // Convert local time to UTC time in milliseconds
-  const utcTimeMs = localTimeMs + (localTimezoneOffsetMinutes * 60 * 1000);
+  // Apply the timezone offset to get the correct time
+  const targetHours = utcHours + timezone.offset;
   
-  // Calculate time in target timezone
-  const targetTimezoneOffsetMs = timezone.offset * 60 * 60 * 1000;
-  const targetTimeMs = utcTimeMs + targetTimezoneOffsetMs;
+  // Set the hours accounting for the timezone offset
+  targetDate.setUTCHours(targetHours);
   
+  // For debugging
   console.log(`Time calculation for ${timezone.name} (${timezone.city}):`);
-  console.log(`- Local time: ${now.toISOString()}`);
-  console.log(`- Local offset: ${localTimezoneOffsetMinutes} minutes`);
-  console.log(`- Target offset: ${timezone.offset} hours`);
-  console.log(`- Result: ${new Date(targetTimeMs).toISOString()}`);
+  console.log(`- Current UTC time: ${now.toUTCString()}`);
+  console.log(`- UTC Hours: ${utcHours}, UTC Minutes: ${utcMinutes}`);
+  console.log(`- Target timezone offset: ${timezone.offset} hours`);
+  console.log(`- Final time in ${timezone.city}: ${targetDate.toISOString()}`);
   
-  return new Date(targetTimeMs);
+  return targetDate;
 }
 
 export function formatTime(date: Date, formatString: string = "h:mm a"): string {
@@ -137,7 +140,7 @@ export function getUserLocalTimezone(): TimeZone {
       return timezoneByName;
     }
     
-    // If no direct match, use the browser's offset to find a match
+    // If no direct match, calculate the browser's actual offset
     const now = new Date();
     const offsetInMinutes = -now.getTimezoneOffset();
     const offsetInHours = offsetInMinutes / 60;

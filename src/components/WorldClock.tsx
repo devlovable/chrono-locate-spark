@@ -80,8 +80,8 @@ const WorldClock: React.FC<WorldClockProps> = ({ userLocation }) => {
     // Call immediately
     updateTimes();
     
-    // Then set up interval
-    const intervalId = setInterval(updateTimes, 1000);
+    // Then set up interval with a faster refresh rate (every 500ms)
+    const intervalId = setInterval(updateTimes, 500);
     return () => clearInterval(intervalId);
   }, [selectedTimezones]);
 

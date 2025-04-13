@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar } from '@/components/ui/calendar';
@@ -54,7 +55,7 @@ const Index = () => {
     initializeTimeAndLocation();
   }, []); // Only run once on component mount
 
-  // Separate effect for time updates to avoid recreating interval on each render
+  // Separate effect for time updates with a faster refresh rate
   useEffect(() => {
     if (!localTimezone) return;
     
@@ -70,8 +71,8 @@ const Index = () => {
     // Call once
     updateTime();
     
-    // Then set up interval (update every second)
-    const interval = setInterval(updateTime, 1000);
+    // Then set up interval (update more frequently - every 500ms)
+    const interval = setInterval(updateTime, 500);
     
     return () => clearInterval(interval);
   }, [localTimezone]); // Re-run only if localTimezone changes
