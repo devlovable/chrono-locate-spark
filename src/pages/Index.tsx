@@ -55,7 +55,7 @@ const Index = () => {
             <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-10">
               <div className="text-center">
                 <h1 className="text-6xl md:text-7xl font-mono tracking-tight text-gray-800">
-                  {format(getCurrentTimeInTimeZone(localTimezone), 'HH:mm:ss')}
+                  {format(currentTime, 'HH:mm:ss')}
                 </h1>
                 <div className="text-sm text-muted-foreground mt-2">
                   <span>
@@ -66,19 +66,19 @@ const Index = () => {
               
               <div className="text-left border-l pl-4 md:pl-10 hidden md:block">
                 <div className="text-lg text-gray-800">
-                  <span>{format(getCurrentTimeInTimeZone(localTimezone), 'EEEE')}</span>
+                  <span>{format(currentTime, 'EEEE')}</span>
                 </div>
                 <div className="text-lg text-gray-800">
-                  <span>{format(getCurrentTimeInTimeZone(localTimezone), 'MMMM d, yyyy')}</span>
+                  <span>{format(currentTime, 'MMMM d, yyyy')}</span>
                 </div>
                 <div className="text-sm text-primary mt-2">
-                  <span>Week {format(getCurrentTimeInTimeZone(localTimezone), 'w')}, Day {format(getCurrentTimeInTimeZone(localTimezone), 'd')}</span>
+                  <span>Week {format(currentTime, 'w')}, Day {format(currentTime, 'd')}</span>
                 </div>
               </div>
             </div>
             
             <div className="mt-4 pt-4 border-t text-sm text-muted-foreground md:hidden">
-              <span>{format(getCurrentTimeInTimeZone(localTimezone), 'EEEE, MMMM d, yyyy')}</span>
+              <span>{format(currentTime, 'EEEE, MMMM d, yyyy')}</span>
             </div>
             
             <div className="mt-3 text-xs text-primary">
