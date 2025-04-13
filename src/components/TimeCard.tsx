@@ -36,14 +36,14 @@ const TimeCard: React.FC<TimeCardProps> = ({
         {userLocation && isPrimary && (
           <div className="text-xs text-primary mb-2">
             <div className="flex items-center mb-1">
-              <MapPin className="w-3 h-3 mr-1" />
+              <MapPin className="h-3 w-3 mr-1" />
               <span className="font-medium">
                 {userLocation.city || "Unknown location"}
               </span>
             </div>
             {userLocation.country && (
               <div className="flex items-center">
-                <Globe className="w-3 h-3 mr-1" />
+                <Globe className="h-3 w-3 mr-1" />
                 <span>
                   {userLocation.country}
                   {userLocation.accuracy ? ` (±${Math.round(userLocation.accuracy)}m)` : ''}
