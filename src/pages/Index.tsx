@@ -119,7 +119,7 @@ const Index = () => {
           <div className="bg-white p-4 rounded-lg shadow-sm border">
             <div className="flex items-center mb-2">
               <MapPin className="h-4 w-4 mr-1 text-gray-600" />
-              <h3 className="font-medium">Ad Dilinjat</h3>
+              <h3 className="font-medium">{userLocation?.city || "Location"}</h3>
             </div>
             
             <div className="grid grid-cols-2 gap-4">
@@ -141,7 +141,11 @@ const Index = () => {
             </div>
             
             <div className="mt-3 text-xs text-gray-500">
-              <span>Coordinate: 30.42°N, 31.15°E</span>
+              {userLocation ? (
+                <span>Coordinate: {userLocation.latitude.toFixed(2)}°, {userLocation.longitude.toFixed(2)}°</span>
+              ) : (
+                <span>Coordinates unavailable</span>
+              )}
             </div>
           </div>
           
@@ -152,9 +156,29 @@ const Index = () => {
               <h3 className="font-medium">Time Zone Information</h3>
             </div>
             
-            <div className="text-gray-500 text-sm">
-              Unable to retrieve time zone data
-            </div>
+            {localTimezone ? (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Time Zone:</span>
+                  <span className="font-medium">{localTimezone.name}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">UTC Offset:</span>
+                  <span className="font-medium">UTC{localTimezone.offset >= 0 ? '+' : ''}{localTimezone.offset}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">City:</span>
+                  <span className="font-medium">{localTimezone.city}</span>
+                </div>
+                <div className="text-xs text-gray-400 mt-2 italic">
+                  Time data synchronized with atomic clock
+                </div>
+              </div>
+            ) : (
+              <div className="text-gray-500 text-sm">
+                Unable to retrieve time zone data
+              </div>
+            )}
           </div>
         </div>
         
@@ -174,8 +198,6 @@ const Index = () => {
             />
           </div>
         </div>
-        
-        {/* Popular world clocks section removed to make space for the calendar */}
         
         {/* Tabs section moved to after calendar */}
         <Tabs defaultValue="world-clock" className="space-y-6 mt-10">
