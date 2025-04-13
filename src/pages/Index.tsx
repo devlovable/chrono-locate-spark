@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Header from '@/components/Header';
@@ -59,12 +60,12 @@ const Index = () => {
         {/* Main Time Display - Updated to match screenshot */}
         <div className="mb-8">
           <div className="text-center">
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
               Exact Time Now
             </h1>
             
             {userLocation && (
-              <div className="flex items-center justify-center gap-1 text-gray-600 mb-1">
+              <div className="flex items-center justify-center gap-1 text-gray-600 mb-2">
                 <MapPin className="h-4 w-4" />
                 <span className="text-lg">
                   {userLocation.city}{userLocation.country ? `, ${userLocation.country}` : ''}
