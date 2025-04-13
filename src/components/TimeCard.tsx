@@ -25,16 +25,16 @@ const TimeCard: React.FC<TimeCardProps> = ({
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1">
-            <MapPin className="w-4 h-4 text-primary" />
+            <MapPin className="w-4 h-4 text-gray-600" />
             <h3 className="font-medium">{timezone.city}</h3>
           </div>
-          <span className="text-xs font-medium bg-secondary/40 text-secondary-foreground px-2 py-0.5 rounded-md">
+          <span className="text-xs font-medium bg-gray-100 text-gray-700 px-2 py-0.5 rounded-md">
             {timezone.name} (UTC{timezone.offset >= 0 ? '+' : ''}{timezone.offset})
           </span>
         </div>
         
         {userLocation && isPrimary && (
-          <div className="text-xs text-primary mb-2">
+          <div className="text-xs text-gray-600 mb-2">
             <div className="flex items-center mb-1">
               <MapPin className="h-3 w-3 mr-1" />
               <span className="font-medium">
@@ -45,15 +45,15 @@ const TimeCard: React.FC<TimeCardProps> = ({
         )}
         
         <div className="text-3xl font-mono tracking-tight text-blue-600">{format(time, 'HH:mm:ss')}</div>
-        <div className="text-xs text-muted-foreground mt-1">{formatTimeWithDay(time)}</div>
+        <div className="text-xs text-gray-500 mt-1">{formatTimeWithDay(time)}</div>
         
         {showDetails && (
-          <div className="mt-3 pt-3 border-t border-border grid grid-cols-1 gap-2">
-            <div className="text-xs text-muted-foreground">
+          <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-1 gap-2">
+            <div className="text-xs text-gray-500">
               <span>{format(time, 'MMMM d, yyyy')}</span>
             </div>
             
-            <div className="text-xs text-muted-foreground mt-1 italic">
+            <div className="text-xs text-gray-400 mt-1 italic">
               Synchronized with atomic clock
             </div>
           </div>
