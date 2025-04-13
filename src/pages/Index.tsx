@@ -5,24 +5,29 @@ import Header from '@/components/Header';
 import WorldClock from '@/components/WorldClock';
 import TimeConverter from '@/components/TimeConverter';
 import LocationSearch from '@/components/LocationSearch';
-import { Clock, ArrowLeftRight, Search, Globe } from 'lucide-react';
+import { Clock, ArrowLeftRight, Search, Globe, Calendar, Map } from 'lucide-react';
 import { timeZones, getCurrentTimeInTimeZone } from '@/lib/timeUtils';
 import TimeCard from '@/components/TimeCard';
+import { format } from 'date-fns';
 
 const Index = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [localTimezone, setLocalTimezone] = useState(timeZones[0]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Try to determine user's timezone
     try {
+      setIsLoading(true);
       const userTimezoneOffset = -new Date().getTimezoneOffset() / 60;
       const closestTimezone = timeZones.find(tz => 
         Math.abs(tz.offset - userTimezoneOffset) < 0.1
       ) || timeZones[0];
       setLocalTimezone(closestTimezone);
+      setIsLoading(false);
     } catch (error) {
       console.error("Error determining local timezone:", error);
+      setIsLoading(false);
     }
 
     // Update time every second
@@ -37,23 +42,30 @@ const Index = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
       
-      <div className="bg-primary/5 py-4 px-6 border-y">
-        <div className="container max-w-7xl mx-auto">
-          <TimeCard 
-            timezone={localTimezone} 
-            time={getCurrentTimeInTimeZone(localTimezone)} 
-            isPrimary={true} 
-            showDetails={true}
-          />
-        </div>
-      </div>
-      
-      <main className="flex-1 container max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-primary mb-2">ExactTime</h1>
-          <p className="text-muted-foreground">
-            The most precise time source synchronized with atomic clock time
-          </p>
+      <main className="flex-1 container mx-auto max-w-5xl px-4 py-8">
+        {/* Main Time Display - Time.is style */}
+        <div className="text-center mb-8">
+          <div className="mb-2">
+            <span className="text-muted-foreground">
+              {isLoading ? "Detecting location..." : `Time in ${localTimezone.city}`}
+            </span>
+          </div>
+          <h1 className="text-6xl md:text-8xl font-bold tracking-tight">
+            {format(getCurrentTimeInTimeZone(localTimezone), 'HH:mm:ss')}
+          </h1>
+          <div className="flex justify-center items-center gap-2 text-lg text-muted-foreground mt-3">
+            <Calendar className="h-5 w-5" />
+            <span>{format(getCurrentTimeInTimeZone(localTimezone), 'EEEE, MMMM d, yyyy')}</span>
+          </div>
+          <div className="text-sm text-primary mt-2">
+            <span>Exact time synchronized with atomic clock</span>
+          </div>
+          <div className="text-sm mt-4 flex justify-center items-center gap-1">
+            <Map className="h-4 w-4" />
+            <span>
+              {localTimezone.city} ({localTimezone.name}, UTC{localTimezone.offset >= 0 ? '+' : ''}{localTimezone.offset})
+            </span>
+          </div>
         </div>
         
         <Tabs defaultValue="world-clock" className="space-y-6">
