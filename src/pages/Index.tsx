@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Header from '@/components/Header';
@@ -57,32 +56,28 @@ const Index = () => {
       <Header />
       
       <main className="flex-1 container mx-auto max-w-5xl px-4 py-6">
-        {/* Main Time Display - Similar to time.is/Egypt style */}
+        {/* Main Time Display - Updated to match screenshot */}
         <div className="mb-8">
-          <div className="mb-2 text-center">
-            <h2 className="text-xl font-medium text-gray-700">
-              {isLoading ? "Detecting location..." : `Exact time in ${localTimezone.city}`}
-            </h2>
+          <div className="text-center">
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+              Exact Time Now
+            </h1>
             
             {userLocation && (
-              <div className="flex flex-col items-center justify-center text-sm text-primary">
-                <div className="flex items-center gap-1">
-                  <MapPin className="h-3 w-3" />
-                  <span className="font-medium">
-                    {userLocation.city || "Unknown location"}
-                  </span>
-                </div>
-                {userLocation.country && (
-                  <div className="flex items-center gap-1">
-                    <Globe className="h-3 w-3" />
-                    <span>{userLocation.country}</span>
-                  </div>
-                )}
+              <div className="flex items-center justify-center gap-1 text-gray-600 mb-1">
+                <MapPin className="h-4 w-4" />
+                <span className="text-lg">
+                  {userLocation.city}{userLocation.country ? `, ${userLocation.country}` : ''}
+                </span>
               </div>
             )}
             
+            <div className="text-lg text-gray-600 mb-8">
+              {format(currentTime, 'EEEE, MMMM d, yyyy')}
+            </div>
+            
             {!userLocation && !isLoading && (
-              <div className="text-xs text-muted-foreground">
+              <div className="text-sm text-muted-foreground mb-4">
                 <button 
                   onClick={async () => {
                     const location = await getUserGeolocation();
@@ -102,42 +97,23 @@ const Index = () => {
             )}
           </div>
           
-          <div className="bg-white p-6 rounded-md shadow-sm border text-center">
-            <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-10">
-              <div className="text-center">
-                <h1 className="text-6xl md:text-7xl font-mono tracking-tight text-gray-800">
-                  {format(currentTime, 'HH:mm:ss')}
-                </h1>
-                <div className="text-sm text-muted-foreground mt-2">
-                  <span>
-                    {localTimezone.name} (UTC{localTimezone.offset >= 0 ? '+' : ''}{localTimezone.offset})
-                  </span>
-                </div>
-              </div>
-              
-              <div className="text-left border-l pl-4 md:pl-10 hidden md:block">
-                <div className="text-lg text-gray-800">
-                  <span>{format(currentTime, 'EEEE')}</span>
-                </div>
-                <div className="text-lg text-gray-800">
-                  <span>{format(currentTime, 'MMMM d, yyyy')}</span>
-                </div>
-                <div className="text-sm text-primary mt-2">
-                  <span>Week {format(currentTime, 'w')}, Day {format(currentTime, 'd')}</span>
-                </div>
-              </div>
-            </div>
+          <div className="bg-white p-8 rounded-lg shadow-sm border text-center mb-6">
+            <h2 className="text-8xl md:text-9xl font-semibold tracking-wider text-blue-600 font-mono">
+              <span>{format(currentTime, 'HH')}</span>
+              <span className="text-blue-500">:</span>
+              <span>{format(currentTime, 'mm')}</span>
+              <span className="text-blue-500">:</span>
+              <span>{format(currentTime, 'ss')}</span>
+            </h2>
             
-            <div className="mt-4 pt-4 border-t text-sm text-muted-foreground md:hidden">
-              <span>{format(currentTime, 'EEEE, MMMM d, yyyy')}</span>
-            </div>
-            
-            <div className="mt-3 text-xs text-primary">
-              <span>Synchronized with atomic clock • Accuracy within ±0.5 seconds</span>
+            <div className="mt-4 text-sm text-gray-500">
+              <span>{localTimezone.name} (UTC{localTimezone.offset >= 0 ? '+' : ''}{localTimezone.offset})</span>
+              <span className="mx-2">•</span>
+              <span>Synchronized with atomic clock</span>
             </div>
           </div>
           
-          <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-center">
             <div className="p-2 bg-white border rounded">Sunrise: 06:14</div>
             <div className="p-2 bg-white border rounded">Sunset: 18:37</div>
             <div className="p-2 bg-white border rounded">Day length: 12h 23m</div>

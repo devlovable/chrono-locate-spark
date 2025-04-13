@@ -53,7 +53,7 @@ const TimeCard: React.FC<TimeCardProps> = ({
           </div>
         )}
         
-        <div className="text-3xl font-mono tracking-tight">{format(time, 'HH:mm:ss')}</div>
+        <div className="text-3xl font-mono tracking-tight text-blue-600">{format(time, 'HH:mm:ss')}</div>
         <div className="text-xs text-muted-foreground mt-1">{formatTimeWithDay(time)}</div>
         
         {showDetails && (
