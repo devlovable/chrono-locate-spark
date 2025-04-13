@@ -10,18 +10,47 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import TimeCard from './TimeCard';
-import { timeZones, TimeZone, getCurrentTimeInTimeZone } from '@/lib/timeUtils';
+import { timeZones, TimeZone, getCurrentTimeInTimeZone, getUserLocalTimezone } from '@/lib/timeUtils';
+import { toast } from '@/components/ui/sonner';
 
 const WorldClock: React.FC = () => {
-  const [selectedTimezones, setSelectedTimezones] = useState<TimeZone[]>([
-    timeZones[0], // UTC
-    timeZones[1], // EST
-    timeZones[2], // PST
-  ]);
+  const [selectedTimezones, setSelectedTimezones] = useState<TimeZone[]>([]);
   const [times, setTimes] = useState<Date[]>([]);
   const [selectedTimezone, setSelectedTimezone] = useState<string>("");
   const [lastSync, setLastSync] = useState<Date>(new Date());
   const [showExtendedInfo, setShowExtendedInfo] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    // Initialize with user's detected timezone and some popular ones
+    try {
+      setIsLoading(true);
+      const detectedTimezone = getUserLocalTimezone();
+      
+      // Use the detected timezone as primary and add some popular ones
+      const initialTimezones = [
+        detectedTimezone,
+        ...timeZones.filter(tz => 
+          tz.name !== detectedTimezone.name && 
+          ['EST', 'GMT', 'JST'].includes(tz.name)
+        ).slice(0, 2)
+      ];
+      
+      setSelectedTimezones(initialTimezones);
+      toast.success(`World clock synchronized with ${detectedTimezone.city} timezone`);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error determining local timezone:", error);
+      // Fallback to default timezones
+      setSelectedTimezones([
+        timeZones[0], // UTC
+        timeZones[1], // EST
+        timeZones[2], // PST
+      ]);
+      toast.error("Could not detect your timezone. Using default timezones.");
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     const updateTimes = () => {
@@ -30,10 +59,11 @@ const WorldClock: React.FC = () => {
       setLastSync(new Date());
     };
     
-    updateTimes();
-    const intervalId = setInterval(updateTimes, 1000);
-    
-    return () => clearInterval(intervalId);
+    if (selectedTimezones.length > 0) {
+      updateTimes();
+      const intervalId = setInterval(updateTimes, 1000);
+      return () => clearInterval(intervalId);
+    }
   }, [selectedTimezones]);
 
   const handleAddTimezone = () => {
@@ -58,6 +88,14 @@ const WorldClock: React.FC = () => {
     setTimes(newTimes);
     setLastSync(new Date());
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <p>Detecting your location...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
