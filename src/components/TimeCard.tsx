@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Clock, MapPin } from 'lucide-react';
+import { Clock, MapPin, Globe } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { TimeZone, formatTime, formatTimeWithDay, GeoLocation } from '@/lib/timeUtils';
 import { format } from 'date-fns';
@@ -34,12 +34,22 @@ const TimeCard: React.FC<TimeCardProps> = ({
         </div>
         
         {userLocation && isPrimary && (
-          <div className="text-xs text-primary mb-2 flex items-center">
-            <MapPin className="w-3 h-3 mr-1" />
-            <span>
-              {userLocation.locationName || `${userLocation.latitude.toFixed(4)}, ${userLocation.longitude.toFixed(4)}`}
-              {userLocation.accuracy ? ` (±${Math.round(userLocation.accuracy)}m)` : ''}
-            </span>
+          <div className="text-xs text-primary mb-2">
+            <div className="flex items-center mb-1">
+              <MapPin className="w-3 h-3 mr-1" />
+              <span className="font-medium">
+                {userLocation.city || "Unknown location"}
+              </span>
+            </div>
+            {userLocation.country && (
+              <div className="flex items-center">
+                <Globe className="w-3 h-3 mr-1" />
+                <span>
+                  {userLocation.country}
+                  {userLocation.accuracy ? ` (±${Math.round(userLocation.accuracy)}m)` : ''}
+                </span>
+              </div>
+            )}
           </div>
         )}
         

@@ -12,6 +12,8 @@ export type GeoLocation = {
   longitude: number;
   accuracy?: number;
   locationName?: string;
+  country?: string;
+  city?: string;
 };
 
 export const timeZones: TimeZone[] = [
@@ -134,9 +136,11 @@ export async function getUserGeolocation(): Promise<GeoLocation | null> {
         
         try {
           // Try to get a location name using reverse geocoding
-          const locationName = await reverseGeocode(position.coords.latitude, position.coords.longitude);
-          if (locationName) {
-            location.locationName = locationName;
+          const locationInfo = await reverseGeocode(position.coords.latitude, position.coords.longitude);
+          if (locationInfo) {
+            location.locationName = locationInfo.fullName;
+            location.country = locationInfo.country;
+            location.city = locationInfo.city;
           }
         } catch (error) {
           console.error("Error getting location name:", error);
@@ -153,37 +157,121 @@ export async function getUserGeolocation(): Promise<GeoLocation | null> {
   });
 }
 
-async function reverseGeocode(latitude: number, longitude: number): Promise<string | null> {
+async function reverseGeocode(latitude: number, longitude: number): Promise<{
+  fullName: string;
+  country: string;
+  city: string;
+} | null> {
   try {
-    // Since we can't rely on external APIs in this environment, we'll use a basic mapping approach
-    // This is a simplified approach to demonstrate the concept
-    
     // Define some geographical regions based on latitude/longitude (very approximate)
-    const regions: {bounds: [number, number, number, number], name: string}[] = [
-      // Format: [minLat, maxLat, minLong, maxLong], name
+    const regions: {bounds: [number, number, number, number], name: string, country: string}[] = [
+      // Format: [minLat, maxLat, minLong, maxLong], name, country
       // North America
-      {bounds: [24, 49, -125, -66], name: "United States"},
-      {bounds: [49, 60, -140, -50], name: "Canada"},
+      {bounds: [24, 49, -125, -66], name: "United States", country: "United States"},
+      {bounds: [49, 60, -140, -50], name: "Canada", country: "Canada"},
       // Europe
-      {bounds: [36, 71, -9, 30], name: "Europe"},
-      {bounds: [50, 58, -10, 2], name: "United Kingdom"},
-      {bounds: [42, 51, -5, 8], name: "France"},
-      {bounds: [47, 55, 6, 15], name: "Germany"},
+      {bounds: [50, 58, -10, 2], name: "United Kingdom", country: "United Kingdom"},
+      {bounds: [42, 51, -5, 8], name: "France", country: "France"},
+      {bounds: [47, 55, 6, 15], name: "Germany", country: "Germany"},
+      {bounds: [36, 44, 7, 18], name: "Italy", country: "Italy"},
+      {bounds: [36, 44, -9, 3], name: "Spain", country: "Spain"},
       // Asia
-      {bounds: [20, 54, 100, 145], name: "China"},
-      {bounds: [30, 37, 127, 142], name: "Japan"},
-      {bounds: [8, 37, 68, 97], name: "India"},
+      {bounds: [20, 54, 100, 145], name: "China", country: "China"},
+      {bounds: [30, 37, 127, 142], name: "Japan", country: "Japan"},
+      {bounds: [8, 37, 68, 97], name: "India", country: "India"},
+      {bounds: [35, 42, 126, 130], name: "South Korea", country: "South Korea"},
       // Australia
-      {bounds: [-43, -10, 113, 153], name: "Australia"},
+      {bounds: [-43, -10, 113, 153], name: "Australia", country: "Australia"},
       // South America
-      {bounds: [-55, 12, -81, -35], name: "South America"},
-      {bounds: [-33, -22, -70, -44], name: "Brazil"},
+      {bounds: [-33, -22, -70, -44], name: "Brazil", country: "Brazil"},
+      {bounds: [-55, -22, -76, -53], name: "Argentina", country: "Argentina"},
       // Africa
-      {bounds: [-35, 37, -17, 51], name: "Africa"},
+      {bounds: [-35, -22, 16, 33], name: "South Africa", country: "South Africa"},
+      {bounds: [27, 32, 30, 33], name: "Egypt", country: "Egypt"},
     ];
     
-    // Find the matching region
-    let locationName = "Unknown location";
+    // Cities with detailed information
+    const cities: {coordinates: [number, number], name: string, country: string, radius: number}[] = [
+      // Format: [lat, long], city name, country name, radius in degrees (approximate)
+      {coordinates: [40.7128, -74.0060], name: "New York City", country: "United States", radius: 0.5},
+      {coordinates: [34.0522, -118.2437], name: "Los Angeles", country: "United States", radius: 0.5},
+      {coordinates: [41.8781, -87.6298], name: "Chicago", country: "United States", radius: 0.5},
+      {coordinates: [29.7604, -95.3698], name: "Houston", country: "United States", radius: 0.5},
+      {coordinates: [37.7749, -122.4194], name: "San Francisco", country: "United States", radius: 0.4},
+      {coordinates: [45.5017, -73.5673], name: "Montreal", country: "Canada", radius: 0.4},
+      {coordinates: [43.6532, -79.3832], name: "Toronto", country: "Canada", radius: 0.4},
+      {coordinates: [49.2827, -123.1207], name: "Vancouver", country: "Canada", radius: 0.4},
+      
+      {coordinates: [51.5074, -0.1278], name: "London", country: "United Kingdom", radius: 0.3},
+      {coordinates: [55.9533, -3.1883], name: "Edinburgh", country: "United Kingdom", radius: 0.3},
+      {coordinates: [53.4808, -2.2426], name: "Manchester", country: "United Kingdom", radius: 0.3},
+      
+      {coordinates: [48.8566, 2.3522], name: "Paris", country: "France", radius: 0.3},
+      {coordinates: [43.2965, 5.3698], name: "Marseille", country: "France", radius: 0.3},
+      {coordinates: [45.7640, 4.8357], name: "Lyon", country: "France", radius: 0.3},
+      
+      {coordinates: [52.5200, 13.4050], name: "Berlin", country: "Germany", radius: 0.3},
+      {coordinates: [48.1351, 11.5820], name: "Munich", country: "Germany", radius: 0.3},
+      {coordinates: [50.1109, 8.6821], name: "Frankfurt", country: "Germany", radius: 0.3},
+      
+      {coordinates: [41.9028, 12.4964], name: "Rome", country: "Italy", radius: 0.3},
+      {coordinates: [45.4642, 9.1900], name: "Milan", country: "Italy", radius: 0.3},
+      {coordinates: [43.7696, 11.2558], name: "Florence", country: "Italy", radius: 0.3},
+      
+      {coordinates: [40.4168, -3.7038], name: "Madrid", country: "Spain", radius: 0.3},
+      {coordinates: [41.3851, 2.1734], name: "Barcelona", country: "Spain", radius: 0.3},
+      
+      {coordinates: [35.6762, 139.6503], name: "Tokyo", country: "Japan", radius: 0.5},
+      {coordinates: [34.6937, 135.5023], name: "Osaka", country: "Japan", radius: 0.5},
+      
+      {coordinates: [39.9042, 116.4074], name: "Beijing", country: "China", radius: 0.5},
+      {coordinates: [31.2304, 121.4737], name: "Shanghai", country: "China", radius: 0.5},
+      {coordinates: [22.3193, 114.1694], name: "Hong Kong", country: "China", radius: 0.3},
+      
+      {coordinates: [28.6139, 77.2090], name: "New Delhi", country: "India", radius: 0.4},
+      {coordinates: [19.0760, 72.8777], name: "Mumbai", country: "India", radius: 0.4},
+      {coordinates: [12.9716, 77.5946], name: "Bangalore", country: "India", radius: 0.4},
+      
+      {coordinates: [37.5665, 126.9780], name: "Seoul", country: "South Korea", radius: 0.4},
+      
+      {coordinates: [-33.8688, 151.2093], name: "Sydney", country: "Australia", radius: 0.4},
+      {coordinates: [-37.8136, 144.9631], name: "Melbourne", country: "Australia", radius: 0.4},
+      {coordinates: [-27.4698, 153.0251], name: "Brisbane", country: "Australia", radius: 0.4},
+      
+      {coordinates: [-22.9068, -43.1729], name: "Rio de Janeiro", country: "Brazil", radius: 0.4},
+      {coordinates: [-23.5505, -46.6333], name: "São Paulo", country: "Brazil", radius: 0.4},
+      
+      {coordinates: [-34.6037, -58.3816], name: "Buenos Aires", country: "Argentina", radius: 0.4},
+      
+      {coordinates: [-33.9249, 18.4241], name: "Cape Town", country: "South Africa", radius: 0.4},
+      {coordinates: [-26.2041, 28.0473], name: "Johannesburg", country: "South Africa", radius: 0.4},
+      
+      {coordinates: [30.0444, 31.2357], name: "Cairo", country: "Egypt", radius: 0.4},
+      
+      {coordinates: [1.3521, 103.8198], name: "Singapore", country: "Singapore", radius: 0.2},
+      {coordinates: [25.2048, 55.2708], name: "Dubai", country: "United Arab Emirates", radius: 0.3},
+      {coordinates: [55.7558, 37.6173], name: "Moscow", country: "Russia", radius: 0.5},
+    ];
+    
+    // Try to find a matching city first (more precise)
+    for (const city of cities) {
+      const [cityLat, cityLong] = city.coordinates;
+      // Calculate rough distance (this is not accurate but sufficient for this demo)
+      const latDiff = Math.abs(latitude - cityLat);
+      const longDiff = Math.abs(longitude - cityLong);
+      const distance = Math.sqrt(latDiff * latDiff + longDiff * longDiff);
+      
+      if (distance <= city.radius) {
+        return {
+          fullName: `${city.name}, ${city.country}`,
+          city: city.name,
+          country: city.country
+        };
+      }
+    }
+    
+    // If no city match, try to find the region/country
+    let locationCountry = "Unknown";
     
     for (const region of regions) {
       const [minLat, maxLat, minLong, maxLong] = region.bounds;
@@ -193,47 +281,28 @@ async function reverseGeocode(latitude: number, longitude: number): Promise<stri
         longitude >= minLong && 
         longitude <= maxLong
       ) {
-        locationName = region.name;
+        locationCountry = region.country;
         break;
       }
     }
     
-    // Add more specific cities if coordinates are close to known locations
-    const cities: {coordinates: [number, number], name: string, radius: number}[] = [
-      // Format: [lat, long], name, radius in degrees (approximate)
-      {coordinates: [40.7128, -74.0060], name: "New York City, USA", radius: 0.5},
-      {coordinates: [34.0522, -118.2437], name: "Los Angeles, USA", radius: 0.5},
-      {coordinates: [51.5074, -0.1278], name: "London, UK", radius: 0.3},
-      {coordinates: [48.8566, 2.3522], name: "Paris, France", radius: 0.3},
-      {coordinates: [35.6762, 139.6503], name: "Tokyo, Japan", radius: 0.5},
-      {coordinates: [22.3193, 114.1694], name: "Hong Kong", radius: 0.2},
-      {coordinates: [19.0760, 72.8777], name: "Mumbai, India", radius: 0.4},
-      {coordinates: [-33.8688, 151.2093], name: "Sydney, Australia", radius: 0.4},
-      {coordinates: [55.7558, 37.6173], name: "Moscow, Russia", radius: 0.5},
-      {coordinates: [-22.9068, -43.1729], name: "Rio de Janeiro, Brazil", radius: 0.4},
-      {coordinates: [52.5200, 13.4050], name: "Berlin, Germany", radius: 0.3},
-      {coordinates: [41.9028, 12.4964], name: "Rome, Italy", radius: 0.2},
-      {coordinates: [37.7749, -122.4194], name: "San Francisco, USA", radius: 0.3},
-      {coordinates: [1.3521, 103.8198], name: "Singapore", radius: 0.2},
-      {coordinates: [25.2048, 55.2708], name: "Dubai, UAE", radius: 0.3},
-    ];
-    
-    for (const city of cities) {
-      const [cityLat, cityLong] = city.coordinates;
-      // Calculate rough distance (this is not accurate but sufficient for this demo)
-      const latDiff = Math.abs(latitude - cityLat);
-      const longDiff = Math.abs(longitude - cityLong);
-      const distance = Math.sqrt(latDiff * latDiff + longDiff * longDiff);
-      
-      if (distance <= city.radius) {
-        return city.name;
-      }
+    // If we have at least the country, return with coordinates as the "city"
+    if (locationCountry !== "Unknown") {
+      const coordsStr = `${latitude.toFixed(2)}, ${longitude.toFixed(2)}`;
+      return {
+        fullName: `${locationCountry} (${coordsStr})`,
+        country: locationCountry,
+        city: `Location at ${coordsStr}`
+      };
     }
     
-    // If no specific city is found, return the region
-    return locationName !== "Unknown location" 
-      ? `${locationName} (${latitude.toFixed(2)}, ${longitude.toFixed(2)})`
-      : `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+    // Fallback to just coordinates if we couldn't determine location
+    const coordsStr = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+    return {
+      fullName: coordsStr,
+      country: "Unknown",
+      city: `Location at ${coordsStr}`
+    };
   } catch (error) {
     console.error("Error reverse geocoding:", error);
     return null;

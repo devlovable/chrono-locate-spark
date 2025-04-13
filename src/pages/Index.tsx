@@ -65,12 +65,19 @@ const Index = () => {
             </h2>
             
             {userLocation && (
-              <div className="flex items-center justify-center gap-1 text-sm text-primary">
-                <MapPin className="h-3 w-3" />
-                <span>
-                  {userLocation.locationName || `${userLocation.latitude.toFixed(4)}, ${userLocation.longitude.toFixed(4)}`}
-                  {userLocation.accuracy ? ` (±${Math.round(userLocation.accuracy)}m)` : ''}
-                </span>
+              <div className="flex flex-col items-center justify-center text-sm text-primary">
+                <div className="flex items-center gap-1">
+                  <MapPin className="h-3 w-3" />
+                  <span className="font-medium">
+                    {userLocation.city || "Unknown location"}
+                  </span>
+                </div>
+                {userLocation.country && (
+                  <div className="flex items-center gap-1">
+                    <Globe className="h-3 w-3" />
+                    <span>{userLocation.country}</span>
+                  </div>
+                )}
               </div>
             )}
             
@@ -82,7 +89,7 @@ const Index = () => {
                     if (location) {
                       setUserLocation(location);
                       setGpsEnabled(true);
-                      toast.success(`Location detected: ${location.locationName || 'Unknown'}`);
+                      toast.success(`Location detected: ${location.city || 'Unknown'}, ${location.country || 'Unknown'}`);
                     } else {
                       toast.error("Could not detect your location. Please allow location access.");
                     }

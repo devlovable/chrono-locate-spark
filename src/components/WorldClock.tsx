@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { Plus, RefreshCw, MapPin } from 'lucide-react';
+import { Plus, RefreshCw, MapPin, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { 
   Select,
@@ -107,14 +106,22 @@ const WorldClock: React.FC<WorldClockProps> = ({ userLocation }) => {
         <div>
           <h2 className="text-xl font-semibold">World Clock</h2>
           {userLocation && (
-            <div className="flex items-center text-xs text-primary">
-              <MapPin className="h-3 w-3 mr-1" />
-              <span>
-                {userLocation.locationName || `${userLocation.latitude.toFixed(4)}, ${userLocation.longitude.toFixed(4)}`}
-              </span>
+            <div className="flex flex-col text-xs text-primary">
+              <div className="flex items-center">
+                <MapPin className="h-3 w-3 mr-1" />
+                <span className="font-medium">
+                  {userLocation.city || "Unknown location"}
+                </span>
+              </div>
+              {userLocation.country && (
+                <div className="flex items-center">
+                  <Globe className="h-3 w-3 mr-1" />
+                  <span>{userLocation.country}</span>
+                </div>
+              )}
             </div>
           )}
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground mt-1">
             Last synchronized: {lastSync.toLocaleTimeString()}
             <Button variant="ghost" size="sm" className="ml-1 h-6 w-6 p-0" onClick={handleSync}>
               <RefreshCw className="h-3 w-3" />
