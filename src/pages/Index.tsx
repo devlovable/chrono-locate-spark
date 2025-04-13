@@ -5,9 +5,8 @@ import Header from '@/components/Header';
 import WorldClock from '@/components/WorldClock';
 import TimeConverter from '@/components/TimeConverter';
 import LocationSearch from '@/components/LocationSearch';
-import { Clock, ArrowLeftRight, Search, Globe, Calendar, Map } from 'lucide-react';
-import { timeZones, getCurrentTimeInTimeZone, TimeZone } from '@/lib/timeUtils';
-import TimeCard from '@/components/TimeCard';
+import { Clock, ArrowLeftRight, Search, Globe, Calendar } from 'lucide-react';
+import { timeZones, getCurrentTimeInTimeZone, TimeZone, getUserLocalTimezone } from '@/lib/timeUtils';
 import { format } from 'date-fns';
 import { toast } from '@/components/ui/sonner';
 
@@ -20,29 +19,10 @@ const Index = () => {
     // Try to determine user's timezone
     try {
       setIsLoading(true);
+      const detectedTimezone = getUserLocalTimezone();
+      setLocalTimezone(detectedTimezone);
       
-      // Get user's timezone offset in hours
-      const userTimezoneOffset = -new Date().getTimezoneOffset() / 60;
-      
-      // Get browser's timezone name if available
-      const userTimezoneName = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      
-      // Try to find exact timezone match first by name
-      let detectedTimezone = timeZones.find(tz => 
-        tz.name === userTimezoneName
-      );
-      
-      // Fall back to offset-based matching if name matching fails
-      if (!detectedTimezone) {
-        detectedTimezone = timeZones.find(tz => 
-          Math.abs(tz.offset - userTimezoneOffset) < 0.1
-        );
-      }
-      
-      const timezone = detectedTimezone || timeZones[0];
-      setLocalTimezone(timezone);
-      
-      toast.success(`Time synchronized with ${timezone.city} timezone`);
+      toast.success(`Time synchronized with ${detectedTimezone.city} timezone`);
       setIsLoading(false);
     } catch (error) {
       console.error("Error determining local timezone:", error);
@@ -64,27 +44,32 @@ const Index = () => {
       
       <main className="flex-1 container mx-auto max-w-5xl px-4 py-8">
         {/* Main Time Display - Time.is style */}
-        <div className="text-center mb-8">
-          <div className="mb-2">
-            <span className="text-muted-foreground">
-              {isLoading ? "Detecting location..." : `Time in ${localTimezone.city}`}
-            </span>
+        <div className="text-center mb-12">
+          <div className="mb-4">
+            <h2 className="text-lg text-muted-foreground">
+              {isLoading ? "Detecting location..." : `Exact time in ${localTimezone.city}`}
+            </h2>
           </div>
-          <h1 className="text-6xl md:text-8xl font-bold tracking-tight">
-            {format(getCurrentTimeInTimeZone(localTimezone), 'HH:mm:ss')}
-          </h1>
-          <div className="flex justify-center items-center gap-2 text-lg text-muted-foreground mt-3">
-            <Calendar className="h-5 w-5" />
-            <span>{format(getCurrentTimeInTimeZone(localTimezone), 'EEEE, MMMM d, yyyy')}</span>
-          </div>
-          <div className="text-sm text-primary mt-2">
-            <span>Exact time synchronized with atomic clock</span>
-          </div>
-          <div className="text-sm mt-4 flex justify-center items-center gap-1">
-            <Map className="h-4 w-4" />
-            <span>
-              {localTimezone.city} ({localTimezone.name}, UTC{localTimezone.offset >= 0 ? '+' : ''}{localTimezone.offset})
-            </span>
+          
+          <div className="bg-white p-6 rounded-lg shadow-sm border">
+            <h1 className="text-7xl md:text-8xl font-mono tracking-tight text-gray-800">
+              {format(getCurrentTimeInTimeZone(localTimezone), 'HH:mm:ss')}
+            </h1>
+            
+            <div className="flex justify-center items-center gap-2 text-lg text-muted-foreground mt-4">
+              <Calendar className="h-5 w-5" />
+              <span>{format(getCurrentTimeInTimeZone(localTimezone), 'EEEE, MMMM d, yyyy')}</span>
+            </div>
+            
+            <div className="mt-4 text-primary text-sm">
+              <span>Time synchronized with atomic clock</span>
+            </div>
+            
+            <div className="text-sm mt-2 text-muted-foreground">
+              <span>
+                {localTimezone.city} ({localTimezone.name}, UTC{localTimezone.offset >= 0 ? '+' : ''}{localTimezone.offset})
+              </span>
+            </div>
           </div>
         </div>
         
