@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar } from '@/components/ui/calendar';
@@ -25,6 +24,7 @@ const Index = () => {
       try {
         setIsLoading(true);
         const detectedTimezone = getUserLocalTimezone();
+        console.log("Index - Detected timezone:", detectedTimezone);
         setLocalTimezone(detectedTimezone);
         
         // Try to get user's geolocation
@@ -32,7 +32,8 @@ const Index = () => {
         if (geoLocation) {
           setUserLocation(geoLocation);
           setGpsEnabled(true);
-          toast.success(`Location detected: ${geoLocation.locationName || 'Unknown'}`);
+          console.log("Detected location:", geoLocation);
+          toast.success(`Location detected: ${geoLocation.city || geoLocation.locationName || 'Unknown'}`);
         }
         
         toast.success(`Time synchronized with ${detectedTimezone.city} timezone`);
@@ -46,13 +47,14 @@ const Index = () => {
     
     initializeTimeAndLocation();
 
-    // Update time every second
+    // Update time every second with the correct timezone
     const interval = setInterval(() => {
-      setCurrentTime(new Date());
+      const now = getCurrentTimeInTimeZone(localTimezone);
+      setCurrentTime(now);
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [localTimezone]); // Re-run if localTimezone changes
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">

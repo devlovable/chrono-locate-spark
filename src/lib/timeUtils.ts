@@ -37,9 +37,18 @@ export const timeZones: TimeZone[] = [
 ];
 
 export function getCurrentTimeInTimeZone(timezone: TimeZone): Date {
+  // Create a new Date object for the current time
   const now = new Date();
-  const utcDate = addMinutes(now, now.getTimezoneOffset());
-  return addHours(utcDate, timezone.offset);
+  
+  // Convert to UTC by adding the local timezone offset
+  const utcDate = new Date(now.getTime() + now.getTimezoneOffset() * 60000);
+  
+  // Then add the target timezone's offset (in milliseconds)
+  // For timezones with fraction offsets (like India's +5:30), convert to minutes first
+  const offsetInMinutes = timezone.offset * 60;
+  const targetTime = new Date(utcDate.getTime() + offsetInMinutes * 60000);
+  
+  return targetTime;
 }
 
 export function formatTime(date: Date, formatString: string = "h:mm a"): string {
@@ -59,14 +68,16 @@ export function convertTime(time: string, fromTimezone: TimeZone, toTimezone: Ti
   date.setHours(hours);
   date.setMinutes(minutes);
   
-  // Convert to UTC
-  const utcDate = addMinutes(date, date.getTimezoneOffset());
+  // Get UTC time by removing the fromTimezone offset
+  // First, normalize to UTC
+  const localOffset = date.getTimezoneOffset();
+  const utcDate = new Date(date.getTime() + localOffset * 60000);
   
-  // Adjust for the from timezone
-  const sourceDate = addHours(utcDate, -fromTimezone.offset);
+  // Then remove fromTimezone offset and add toTimezone offset
+  const fromOffsetMs = fromTimezone.offset * 60 * 60000;
+  const toOffsetMs = toTimezone.offset * 60 * 60000;
   
-  // Convert to the destination timezone
-  return addHours(sourceDate, toTimezone.offset);
+  return new Date(utcDate.getTime() - fromOffsetMs + toOffsetMs);
 }
 
 export function searchTimeZones(query: string): TimeZone[] {
@@ -100,21 +111,33 @@ export function getTimezoneByOffset(offset: number): TimeZone | undefined {
 
 export function getUserLocalTimezone(): TimeZone {
   try {
-    // First try to get timezone by name
+    // Get browser's timezone name (e.g., "America/New_York")
     const browserTz = getBrowserTimezone();
-    const timezoneByName = getTimezoneByName(browserTz);
+    
+    // Try to find a direct match in our timeZones array
+    const timezoneByName = timeZones.find(tz => 
+      tz.name === browserTz || 
+      browserTz.includes(tz.name)
+    );
+    
     if (timezoneByName) return timezoneByName;
     
-    // Fall back to offset-based detection
-    const offsetHours = -new Date().getTimezoneOffset() / 60;
-    const timezoneByOffset = getTimezoneByOffset(offsetHours);
-    if (timezoneByOffset) return timezoneByOffset;
+    // If no direct match, use the browser's offset to find a match
+    const now = new Date();
+    const offsetInMinutes = -now.getTimezoneOffset();
+    const offsetInHours = offsetInMinutes / 60;
     
-    // Default to UTC if all else fails
-    return timeZones[0];
+    // Find timezone with the closest offset
+    const timezoneByOffset = timeZones.reduce((closest, current) => {
+      const currentDiff = Math.abs(current.offset - offsetInHours);
+      const closestDiff = Math.abs(closest.offset - offsetInHours);
+      return currentDiff < closestDiff ? current : closest;
+    }, timeZones[0]);
+    
+    return timezoneByOffset;
   } catch (error) {
     console.error("Error detecting user timezone:", error);
-    return timeZones[0];
+    return timeZones[0]; // Default to UTC
   }
 }
 

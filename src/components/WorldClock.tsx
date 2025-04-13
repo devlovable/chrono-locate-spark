@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Plus, RefreshCw, MapPin, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,7 @@ const WorldClock: React.FC<WorldClockProps> = ({ userLocation }) => {
     try {
       setIsLoading(true);
       const detectedTimezone = getUserLocalTimezone();
+      console.log("Detected timezone:", detectedTimezone);
       
       // Use the detected timezone as primary and add some popular ones
       const initialTimezones = [
@@ -57,7 +59,11 @@ const WorldClock: React.FC<WorldClockProps> = ({ userLocation }) => {
 
   useEffect(() => {
     const updateTimes = () => {
-      const newTimes = selectedTimezones.map(tz => getCurrentTimeInTimeZone(tz));
+      const newTimes = selectedTimezones.map(tz => {
+        const time = getCurrentTimeInTimeZone(tz);
+        console.log(`Time in ${tz.city} (${tz.name}): ${time.toISOString()}`);
+        return time;
+      });
       setTimes(newTimes);
       setLastSync(new Date());
     };
