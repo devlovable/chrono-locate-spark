@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Header from '@/components/Header';
@@ -72,7 +71,7 @@ const Index = () => {
                   <span>{format(getCurrentTimeInTimeZone(localTimezone), 'MMMM d, yyyy')}</span>
                 </div>
                 <div className="text-sm text-primary mt-2">
-                  <span>Week {format(getCurrentTimeInTimeZone(localTimezone), 'w')}, Day {format(getCurrentTimeInTimeZone(localTimezone), 'D')}</span>
+                  <span>Week {format(getCurrentTimeInTimeZone(localTimezone), 'w')}, Day {format(getCurrentTimeInTimeZone(localTimezone), 'd')}</span>
                 </div>
               </div>
             </div>
