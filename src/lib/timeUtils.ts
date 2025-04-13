@@ -1,4 +1,3 @@
-
 import { format, addHours, parseISO, addMinutes } from "date-fns";
 
 export type TimeZone = {
@@ -17,6 +16,15 @@ export const timeZones: TimeZone[] = [
   { name: "IST", label: "New Delhi", offset: 5.5, city: "New Delhi" },
   { name: "AEST", label: "Sydney", offset: 10, city: "Sydney" },
   { name: "GMT", label: "London", offset: 0, city: "London" },
+  // Add more common IANA timezone cities
+  { name: "Europe/Berlin", label: "Berlin", offset: 1, city: "Berlin" },
+  { name: "Asia/Dubai", label: "Dubai", offset: 4, city: "Dubai" },
+  { name: "Asia/Singapore", label: "Singapore", offset: 8, city: "Singapore" },
+  { name: "America/Toronto", label: "Toronto", offset: -5, city: "Toronto" },
+  { name: "Australia/Melbourne", label: "Melbourne", offset: 10, city: "Melbourne" },
+  { name: "Pacific/Auckland", label: "Auckland", offset: 12, city: "Auckland" },
+  { name: "America/Mexico_City", label: "Mexico City", offset: -6, city: "Mexico City" },
+  { name: "America/Sao_Paulo", label: "São Paulo", offset: -3, city: "São Paulo" }
 ];
 
 export function getCurrentTimeInTimeZone(timezone: TimeZone): Date {
@@ -62,4 +70,41 @@ export function searchTimeZones(query: string): TimeZone[] {
       tz.city.toLowerCase().includes(lowerQuery) ||
       tz.label.toLowerCase().includes(lowerQuery)
   );
+}
+
+export function getBrowserTimezone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+  } catch (error) {
+    console.error("Error getting browser timezone:", error);
+    return "UTC";
+  }
+}
+
+export function getTimezoneByName(name: string): TimeZone | undefined {
+  return timeZones.find(tz => tz.name === name);
+}
+
+export function getTimezoneByOffset(offset: number): TimeZone | undefined {
+  return timeZones.find(tz => Math.abs(tz.offset - offset) < 0.1);
+}
+
+export function getUserLocalTimezone(): TimeZone {
+  try {
+    // First try to get timezone by name
+    const browserTz = getBrowserTimezone();
+    const timezoneByName = getTimezoneByName(browserTz);
+    if (timezoneByName) return timezoneByName;
+    
+    // Fall back to offset-based detection
+    const offsetHours = -new Date().getTimezoneOffset() / 60;
+    const timezoneByOffset = getTimezoneByOffset(offsetHours);
+    if (timezoneByOffset) return timezoneByOffset;
+    
+    // Default to UTC if all else fails
+    return timeZones[0];
+  } catch (error) {
+    console.error("Error detecting user timezone:", error);
+    return timeZones[0];
+  }
 }

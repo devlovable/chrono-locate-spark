@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Clock, Globe } from 'lucide-react';
+import { Clock, Globe, MapPin } from 'lucide-react';
 
 const Header: React.FC = () => {
   return (
@@ -12,8 +12,8 @@ const Header: React.FC = () => {
         </div>
         
         <div className="flex items-center text-sm text-muted-foreground">
-          <Globe className="w-4 h-4 mr-1" />
-          <span>Precise world time</span>
+          <MapPin className="w-4 h-4 mr-1" />
+          <span>Auto-detected location time</span>
         </div>
       </div>
     </header>

@@ -6,27 +6,47 @@ import WorldClock from '@/components/WorldClock';
 import TimeConverter from '@/components/TimeConverter';
 import LocationSearch from '@/components/LocationSearch';
 import { Clock, ArrowLeftRight, Search, Globe, Calendar, Map } from 'lucide-react';
-import { timeZones, getCurrentTimeInTimeZone } from '@/lib/timeUtils';
+import { timeZones, getCurrentTimeInTimeZone, TimeZone } from '@/lib/timeUtils';
 import TimeCard from '@/components/TimeCard';
 import { format } from 'date-fns';
+import { toast } from '@/components/ui/sonner';
 
 const Index = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [localTimezone, setLocalTimezone] = useState(timeZones[0]);
+  const [localTimezone, setLocalTimezone] = useState<TimeZone>(timeZones[0]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Try to determine user's timezone
     try {
       setIsLoading(true);
+      
+      // Get user's timezone offset in hours
       const userTimezoneOffset = -new Date().getTimezoneOffset() / 60;
-      const closestTimezone = timeZones.find(tz => 
-        Math.abs(tz.offset - userTimezoneOffset) < 0.1
-      ) || timeZones[0];
-      setLocalTimezone(closestTimezone);
+      
+      // Get browser's timezone name if available
+      const userTimezoneName = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      
+      // Try to find exact timezone match first by name
+      let detectedTimezone = timeZones.find(tz => 
+        tz.name === userTimezoneName
+      );
+      
+      // Fall back to offset-based matching if name matching fails
+      if (!detectedTimezone) {
+        detectedTimezone = timeZones.find(tz => 
+          Math.abs(tz.offset - userTimezoneOffset) < 0.1
+        );
+      }
+      
+      const timezone = detectedTimezone || timeZones[0];
+      setLocalTimezone(timezone);
+      
+      toast.success(`Time synchronized with ${timezone.city} timezone`);
       setIsLoading(false);
     } catch (error) {
       console.error("Error determining local timezone:", error);
+      toast.error("Could not detect your timezone. Using default.");
       setIsLoading(false);
     }
 
