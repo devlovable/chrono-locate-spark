@@ -25,19 +25,31 @@ const Index = () => {
       try {
         setIsLoading(true);
         
-        // Detect user's timezone
-        const detectedTimezone = getUserLocalTimezone();
-        console.log("Index - Detected timezone:", detectedTimezone);
-        setLocalTimezone(detectedTimezone);
-        
-        // Try to get user's geolocation
+        // Try to get user's geolocation first
         const geoLocation = await getUserGeolocation();
+        let detectedTimezone = getUserLocalTimezone(); // Default timezone detection
+        
         if (geoLocation) {
           setUserLocation(geoLocation);
           setGpsEnabled(true);
           console.log("Detected location:", geoLocation);
-          toast.success(`Location detected: ${geoLocation.city || geoLocation.locationName || 'Unknown'}`);
+          
+          // Check if we have a specific timezone for this location (especially for Egypt)
+          if ((geoLocation as any).timeZone) {
+            detectedTimezone = (geoLocation as any).timeZone;
+            console.log("Using location-specific timezone:", detectedTimezone);
+          } else if (geoLocation.country === "Egypt") {
+            // Special case for Egypt - use EET
+            detectedTimezone = timeZones.find(tz => tz.name === "EET") || 
+                              { name: "EET", label: "Cairo", offset: 2, city: "Cairo" };
+            console.log("Location in Egypt, using EET timezone:", detectedTimezone);
+          }
+          
+          toast.success(`Location detected: ${geoLocation.city || geoLocation.locationName || 'Unknown location in ' + geoLocation.country}`);
         }
+        
+        console.log("Index - Final detected timezone:", detectedTimezone);
+        setLocalTimezone(detectedTimezone);
         
         // Update time immediately
         const now = getCurrentTimeInTimeZone(detectedTimezone);

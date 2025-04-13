@@ -25,6 +25,7 @@ export const timeZones: TimeZone[] = [
   { name: "IST", label: "New Delhi", offset: 5.5, city: "New Delhi" },
   { name: "AEST", label: "Sydney", offset: 10, city: "Sydney" },
   { name: "GMT", label: "London", offset: 0, city: "London" },
+  { name: "EET", label: "Cairo", offset: 2, city: "Cairo" }, // Adding explicit Eastern European Time zone for Egypt
   // Add more common IANA timezone cities
   { name: "Europe/Berlin", label: "Berlin", offset: 1, city: "Berlin" },
   { name: "Asia/Dubai", label: "Dubai", offset: 4, city: "Dubai" },
@@ -185,6 +186,14 @@ export async function getUserGeolocation(): Promise<GeoLocation | null> {
             location.locationName = locationInfo.fullName;
             location.country = locationInfo.country;
             location.city = locationInfo.city;
+            
+            // Special case for Egypt - set the time zone explicitly
+            if (locationInfo.country === "Egypt") {
+              console.log("Location detected in Egypt, setting EET timezone");
+              // This will be used in the Index component to set the localTimezone
+              (location as any).timeZone = timeZones.find(tz => tz.name === "EET") || 
+                                          { name: "EET", label: "Cairo", offset: 2, city: "Cairo" };
+            }
           }
         } catch (error) {
           console.error("Error getting location name:", error);
@@ -207,7 +216,7 @@ async function reverseGeocode(latitude: number, longitude: number): Promise<{
   city: string;
 } | null> {
   try {
-    // Define some geographical regions based on latitude/longitude (very approximate)
+    // Improve Egypt detection - adding more precise boundaries
     const regions: {bounds: [number, number, number, number], name: string, country: string}[] = [
       // Format: [minLat, maxLat, minLong, maxLong], name, country
       // North America
@@ -232,9 +241,11 @@ async function reverseGeocode(latitude: number, longitude: number): Promise<{
       // Africa
       {bounds: [-35, -22, 16, 33], name: "South Africa", country: "South Africa"},
       {bounds: [27, 32, 30, 33], name: "Egypt", country: "Egypt"},
+      // More specific bounds for Egypt (update the boundaries to be more accurate)
+      {bounds: [22, 32, 25, 36], name: "Egypt", country: "Egypt"},
     ];
     
-    // Cities with detailed information
+    // Add more Egyptian cities
     const cities: {coordinates: [number, number], name: string, country: string, radius: number}[] = [
       // Format: [lat, long], city name, country name, radius in degrees (approximate)
       {coordinates: [40.7128, -74.0060], name: "New York City", country: "United States", radius: 0.5},
@@ -295,6 +306,17 @@ async function reverseGeocode(latitude: number, longitude: number): Promise<{
       {coordinates: [1.3521, 103.8198], name: "Singapore", country: "Singapore", radius: 0.2},
       {coordinates: [25.2048, 55.2708], name: "Dubai", country: "United Arab Emirates", radius: 0.3},
       {coordinates: [55.7558, 37.6173], name: "Moscow", country: "Russia", radius: 0.5},
+      // Add more Egyptian cities with better precision
+      {coordinates: [31.2001, 29.9187], name: "Alexandria", country: "Egypt", radius: 0.3},
+      {coordinates: [31.4175, 31.8144], name: "Mansoura", country: "Egypt", radius: 0.3},
+      {coordinates: [30.8428, 30.5420], name: "Tanta", country: "Egypt", radius: 0.3}, // This is close to the coordinates from the user
+      {coordinates: [30.0086, 31.4286], name: "Heliopolis", country: "Egypt", radius: 0.3},
+      {coordinates: [25.6872, 32.6396], name: "Luxor", country: "Egypt", radius: 0.3},
+      {coordinates: [31.1656, 30.0472], name: "Giza", country: "Egypt", radius: 0.3},
+      {coordinates: [24.0889, 32.8998], name: "Aswan", country: "Egypt", radius: 0.3},
+      {coordinates: [29.9773, 32.5269], name: "Suez", country: "Egypt", radius: 0.3},
+      {coordinates: [31.1139, 33.8006], name: "Port Said", country: "Egypt", radius: 0.3},
+      {coordinates: [27.2579, 31.2126], name: "Minya", country: "Egypt", radius: 0.3},
     ];
     
     // Try to find a matching city first (more precise)
@@ -312,6 +334,16 @@ async function reverseGeocode(latitude: number, longitude: number): Promise<{
           country: city.country
         };
       }
+    }
+    
+    // Egypt-specific check
+    if (latitude >= 22 && latitude <= 32 && longitude >= 25 && longitude <= 36) {
+      // We're in Egypt but not in a known city
+      return {
+        fullName: `Egypt (${latitude.toFixed(2)}, ${longitude.toFixed(2)})`,
+        country: "Egypt",
+        city: `Location in Egypt`
+      };
     }
     
     // If no city match, try to find the region/country
