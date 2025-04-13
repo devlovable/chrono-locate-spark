@@ -38,28 +38,24 @@ export const timeZones: TimeZone[] = [
 ];
 
 export function getCurrentTimeInTimeZone(timezone: TimeZone): Date {
-  // Get the current UTC time
+  // Get the current UTC time from the system
   const now = new Date();
   
-  // Calculate the time directly using UTC methods
-  const utcHours = now.getUTCHours();
-  const utcMinutes = now.getUTCMinutes();
-  const utcSeconds = now.getUTCSeconds();
-  const utcMilliseconds = now.getUTCMilliseconds();
-  
-  // Clone the date to avoid modifying the original
+  // Create a new date object to avoid modifying the original
   const targetDate = new Date(now);
   
-  // Apply the timezone offset to get the correct time
-  const targetHours = utcHours + timezone.offset;
+  // For fractional offsets (like India's +5.5), split into hours and minutes
+  const offsetHours = Math.floor(timezone.offset);
+  const offsetMinutes = (timezone.offset % 1) * 60;
   
-  // Set the hours accounting for the timezone offset
-  targetDate.setUTCHours(targetHours);
+  // Apply the timezone offset to UTC time
+  targetDate.setUTCHours(now.getUTCHours() + offsetHours);
+  targetDate.setUTCMinutes(now.getUTCMinutes() + offsetMinutes);
   
-  // For debugging
+  // Log for debugging
   console.log(`Time calculation for ${timezone.name} (${timezone.city}):`);
   console.log(`- Current UTC time: ${now.toUTCString()}`);
-  console.log(`- UTC Hours: ${utcHours}, UTC Minutes: ${utcMinutes}`);
+  console.log(`- UTC Hours: ${now.getUTCHours()}, UTC Minutes: ${now.getUTCMinutes()}`);
   console.log(`- Target timezone offset: ${timezone.offset} hours`);
   console.log(`- Final time in ${timezone.city}: ${targetDate.toISOString()}`);
   
@@ -141,7 +137,7 @@ export function getUserLocalTimezone(): TimeZone {
       return timezoneByName;
     }
     
-    // If no direct match, calculate the browser's actual offset
+    // Calculate the browser's actual offset from UTC
     const now = new Date();
     const offsetInMinutes = -now.getTimezoneOffset();
     const offsetInHours = offsetInMinutes / 60;

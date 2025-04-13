@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Plus, RefreshCw, MapPin, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -80,8 +81,8 @@ const WorldClock: React.FC<WorldClockProps> = ({ userLocation }) => {
     // Call immediately
     updateTimes();
     
-    // Then set up interval with a faster refresh rate (every 500ms)
-    const intervalId = setInterval(updateTimes, 500);
+    // Then set up interval - update every 1 second for more accurate time
+    const intervalId = setInterval(updateTimes, 1000);
     return () => clearInterval(intervalId);
   }, [selectedTimezones]);
 

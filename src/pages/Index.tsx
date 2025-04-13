@@ -34,15 +34,16 @@ const Index = () => {
           setGpsEnabled(true);
           console.log("Detected location:", geoLocation);
           
-          // Check if we have a specific timezone for this location (especially for Egypt)
-          if ((geoLocation as any).timeZone) {
-            detectedTimezone = (geoLocation as any).timeZone;
-            console.log("Using location-specific timezone:", detectedTimezone);
-          } else if (geoLocation.country === "Egypt") {
-            // Special case for Egypt - use EET
+          // Special cases for specific regions
+          if (geoLocation.country === "Egypt") {
+            // For Egypt, use EET timezone (UTC+2)
             detectedTimezone = timeZones.find(tz => tz.name === "EET") || 
                               { name: "EET", label: "Cairo", offset: 2, city: "Cairo" };
             console.log("Location in Egypt, using EET timezone:", detectedTimezone);
+          } else if ((geoLocation as any).timeZone) {
+            // If the geolocation has a specific timezone attached
+            detectedTimezone = (geoLocation as any).timeZone;
+            console.log("Using location-specific timezone:", detectedTimezone);
           }
           
           toast.success(`Location detected: ${geoLocation.city || geoLocation.locationName || 'Unknown location in ' + geoLocation.country}`);
@@ -76,15 +77,14 @@ const Index = () => {
     // Update time immediately
     const updateTime = () => {
       const now = getCurrentTimeInTimeZone(localTimezone);
-      console.log("Updated current time:", now.toISOString());
       setCurrentTime(now);
     };
     
     // Call once
     updateTime();
     
-    // Then set up interval (update more frequently - every 500ms)
-    const interval = setInterval(updateTime, 500);
+    // Then set up interval (update every 1 second for more accurate time)
+    const interval = setInterval(updateTime, 1000);
     
     return () => clearInterval(interval);
   }, [localTimezone]); // Re-run only if localTimezone changes
